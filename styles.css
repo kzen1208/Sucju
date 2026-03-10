@@ -3847,13 +3847,33 @@ body.dg-scroll-lock .music-player-card {
     filter var(--answer-focus-duration) ease,
     opacity var(--answer-focus-duration) ease,
     color var(--answer-focus-duration) ease,
-    text-shadow var(--answer-focus-duration) ease;
+    text-shadow var(--answer-focus-duration) ease,
+    transform var(--answer-focus-duration) ease;
+}
+
+.answer-focus__word[data-answer-value="accept"] {
+  color: rgba(255, 248, 248, 0.98);
+  opacity: 0.88;
+  text-shadow: 0 0 14px rgba(255, 215, 215, 0.18);
+  transform: scale(1.06);
+}
+
+.answer-focus__word[data-answer-value="decline"] {
+  opacity: 0.58;
 }
 
 .answer-focus__word.is-active {
   filter: blur(0);
   opacity: 1;
   text-shadow: 0 0 18px rgba(255, 255, 255, 0.18);
+}
+
+.answer-focus__word[data-answer-value="accept"].is-active {
+  color: white;
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.22),
+    0 0 34px rgba(255, 196, 196, 0.26);
+  transform: scale(1.1);
 }
 
 .answer-focus__word:focus-visible {

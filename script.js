@@ -1,5 +1,5 @@
 const ROSE_ICON_PATH = "img/rose.png";
-const DOME_GALLERY_IMAGE_DIR = "img mẫu";
+const DOME_GALLERY_IMAGE_DIR = "img-mau";
 const DOME_GALLERY_IMAGE_FILES = [
   "IMG_5974.PNG",
   "IMG_5976.PNG",
@@ -75,6 +75,7 @@ const ADMIN_LAST_ANSWER_STORAGE_KEY = "formylove-last-answer";
 
 document.addEventListener("DOMContentLoaded", function () {
   initPageLoader();
+  setupReloadHeroReset();
   setupStoryProgression();
   setupMobileLetterGate();
   setupBlurText();
@@ -102,6 +103,39 @@ function initPageLoader() {
   window.setTimeout(() => {
     hidePageLoader();
   }, 9000);
+}
+
+function setupReloadHeroReset() {
+  if ("scrollRestoration" in window.history) {
+    window.history.scrollRestoration = "manual";
+  }
+
+  const navigationEntries =
+    typeof performance.getEntriesByType === "function"
+      ? performance.getEntriesByType("navigation")
+      : [];
+  const legacyNavigationType = performance.navigation
+    ? performance.navigation.type
+    : -1;
+  const didReload =
+    navigationEntries[0]?.type === "reload" || legacyNavigationType === 1;
+
+  if (!didReload) {
+    return;
+  }
+
+  const cleanUrl = `${window.location.pathname}${window.location.search}`;
+  if (window.location.hash) {
+    window.history.replaceState(null, "", cleanUrl);
+  }
+
+  const resetToHero = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  };
+
+  resetToHero();
+  window.requestAnimationFrame(resetToHero);
+  window.addEventListener("load", resetToHero, { once: true });
 }
 
 function markPageLoaderPageReady() {
@@ -775,6 +809,11 @@ function initTrueFocus(block) {
 
   let currentIndex = 0;
   let rotationTimer = 0;
+  const rotationSequence = words.flatMap((word, index) => {
+    const weight = Number.parseInt(word.dataset.answerPriority || "1", 10);
+    return Array.from({ length: Math.max(1, weight) }, () => index);
+  });
+  let rotationCursor = 0;
 
   block.style.setProperty("--answer-focus-duration", `${animationDuration}s`);
   block.style.setProperty("--answer-focus-border", borderColor);
@@ -834,19 +873,27 @@ function initTrueFocus(block) {
   };
 
   const startRotation = () => {
-    if (manualMode || prefersReducedMotion || words.length <= 1) {
+    if (
+      manualMode ||
+      prefersReducedMotion ||
+      words.length <= 1 ||
+      rotationSequence.length <= 1
+    ) {
       return;
     }
 
     stopRotation();
     rotationTimer = window.setInterval(() => {
-      const nextIndex = (currentIndex + 1) % words.length;
+      rotationCursor = (rotationCursor + 1) % rotationSequence.length;
+      const nextIndex = rotationSequence[rotationCursor];
       applyState(nextIndex);
     }, (animationDuration + pauseBetweenAnimations) * 1000);
   };
 
   const handleInteraction = (index) => {
     stopRotation();
+    const nextCursor = rotationSequence.indexOf(index);
+    rotationCursor = nextCursor >= 0 ? nextCursor : 0;
     applyState(index);
   };
 
