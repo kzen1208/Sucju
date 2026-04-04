@@ -1,20 +1,5 @@
 const ROSE_ICON_PATH = "img/rose.png";
-const DOME_GALLERY_IMAGE_URLS = {
-  "IMG_5974.PNG": "https://i.postimg.cc/xJhW6wJR/IMG-5974.png",
-  "IMG_5976.PNG": "https://i.postimg.cc/qhzPXJRX/IMG-5976.png",
-  "IMG_5977.PNG": "https://i.postimg.cc/MMvCb6T5/IMG-5977.png",
-  "IMG_5978.PNG": "https://i.postimg.cc/47mDbfdw/IMG-5978.png",
-  "IMG_6344.PNG": "https://i.postimg.cc/K3TCw0ty/IMG-6344.png",
-  "IMG_6401.PNG": "https://i.postimg.cc/XB5tms9B/IMG-6401.png",
-  "IMG_6402.PNG": "https://i.postimg.cc/pynNmL4s/IMG-6402.png",
-  "IMG_6404.PNG": "https://i.postimg.cc/Bt1Wjnkr/IMG-6404.png",
-  "IMG_6405.PNG": "https://i.postimg.cc/3WDMkxzh/IMG-6405.png",
-  "IMG_6540.PNG": "https://i.postimg.cc/dDTMhVgv/IMG-6540.png",
-  "IMG_6541.PNG": "https://i.postimg.cc/gn9C8PPF/IMG-6541.png",
-  "IMG_6543.PNG": "https://i.postimg.cc/TprZcHRk/IMG-6543.png",
-  "IMG_6544.PNG": "https://i.postimg.cc/WdTxY63B/IMG-6544.png",
-  "IMG_6545.PNG": "https://i.postimg.cc/dhwgNm15/IMG-6545.png",
-};
+const DOME_GALLERY_IMAGE_DIR = "img-mau";
 const DOME_GALLERY_IMAGE_FILES = [
   "IMG_5974.PNG",
   "IMG_5976.PNG",
@@ -32,7 +17,7 @@ const DOME_GALLERY_IMAGE_FILES = [
   "IMG_6545.PNG",
 ];
 const DOME_GALLERY_IMAGES = DOME_GALLERY_IMAGE_FILES.map((fileName, index) => ({
-  src: DOME_GALLERY_IMAGE_URLS[fileName] ?? fileName,
+  src: `${DOME_GALLERY_IMAGE_DIR}/${fileName}`,
   alt: `Khoảnh khắc của em ${String(index + 1).padStart(2, "0")}`,
 }));
 const DOME_GALLERY_DEFAULTS = {
