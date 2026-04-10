@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Làm Bạn Gái Anh Nhé</title>
+    <link rel="icon" type="image/svg+xml" href="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/azure-heart/default.svg" />
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,10 +16,6 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
       rel="stylesheet"
     />
-    <script
-      defer
-      src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
-    ></script>
     <link rel="stylesheet" href="styles.css" />
     <script>
       tailwind.config = {
@@ -49,32 +46,8 @@
       };
     </script>
   </head>
-  <body class="gradient-bg min-h-screen text-white is-loading">
-    <div
-      id="page-loader"
-      class="page-loader"
-      role="status"
-      aria-live="polite"
-      aria-label="Đang tải nội dung"
-    >
-      <div class="page-loader__inner">
-        <div class="dot-spinner" aria-hidden="true">
-          <div class="dot-spinner__dot"></div>
-          <div class="dot-spinner__dot"></div>
-          <div class="dot-spinner__dot"></div>
-          <div class="dot-spinner__dot"></div>
-          <div class="dot-spinner__dot"></div>
-          <div class="dot-spinner__dot"></div>
-          <div class="dot-spinner__dot"></div>
-          <div class="dot-spinner__dot"></div>
-        </div>
-      </div>
-    </div>
+  <body class="gradient-bg min-h-screen text-white">
     <audio id="background-music" preload="metadata"></audio>
-    <div
-      id="heart-cursor-container"
-      class="fixed inset-0 pointer-events-none z-[100]"
-    ></div>
     <aside
       id="music-player-card"
       class="music-player-card"
