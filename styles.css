@@ -5127,17 +5127,21 @@ body.dg-scroll-lock .music-player-card {
   }
 
   .timeline-rail {
+    --timeline-rail-x: 24px;
+    --timeline-rail-width: 5px;
     gap: 28px;
     padding-top: 10px;
   }
 
   .timeline-rail::before {
-    left: 24px;
+    left: calc(var(--timeline-rail-x) - (var(--timeline-rail-width) / 2));
+    width: var(--timeline-rail-width);
     transform: none;
   }
 
   .timeline-rail::after {
-    left: 24px;
+    left: calc(var(--timeline-rail-x) - (var(--timeline-rail-width) / 2));
+    width: var(--timeline-rail-width);
     transform: scaleY(0);
   }
 
@@ -5158,8 +5162,17 @@ body.dg-scroll-lock .music-player-card {
   .timeline-step__marker {
     grid-column: 1;
     grid-row: 1 / span 2;
-    justify-content: flex-start;
-    padding-top: 14px;
+    position: absolute;
+    top: 0;
+    left: calc(var(--timeline-rail-x) - 24px);
+    width: 48px;
+    justify-content: center;
+    padding-top: 8px;
+    margin-inline: 0;
+  }
+
+  .timeline-step__dot {
+    margin-inline: auto;
   }
 
   .timeline-step__content,
@@ -5461,13 +5474,16 @@ body.dg-scroll-lock .music-player-card {
   }
 
   .timeline-rail {
+    --timeline-rail-x: 18px;
+    --timeline-rail-width: 5px;
     gap: 22px;
     padding-top: 8px;
   }
 
   .timeline-rail::before,
   .timeline-rail::after {
-    left: 18px;
+    left: calc(var(--timeline-rail-x) - (var(--timeline-rail-width) / 2));
+    width: var(--timeline-rail-width);
   }
 
   .timeline-step,
@@ -5483,10 +5499,15 @@ body.dg-scroll-lock .music-player-card {
   .timeline-step__marker {
     position: absolute;
     top: 0;
-    left: 0;
+    left: calc(var(--timeline-rail-x) - 18px);
     width: 36px;
-    padding-top: 12px;
+    padding-top: 8px;
     justify-content: center;
+    margin-inline: 0;
+  }
+
+  .timeline-step__dot {
+    margin-inline: auto;
   }
 
   .timeline-step__content,
@@ -5536,5 +5557,106 @@ body.dg-scroll-lock .music-player-card {
   .timeline-step__text {
     font-size: 0.8rem;
     line-height: 1.52;
+  }
+}
+
+/* Lightweight local preview mode for smoother Live Server editing */
+body.perf-lite #heart-cursor-container {
+  display: none !important;
+}
+
+body.perf-lite .curved-loop-jacket {
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+body.perf-lite .curved-loop-lite {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  max-width: min(96vw, 1200px);
+  font-family: "Open Sans", sans-serif;
+  font-size: clamp(0.9rem, 1.8vw, 1.25rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(255, 235, 235, 0.92);
+}
+
+body.perf-lite .curved-loop-svg {
+  display: none !important;
+}
+
+body.perf-lite .glass-surface,
+body.perf-lite .glass-surface-button,
+body.perf-lite .site-header,
+body.perf-lite .music-player-card,
+body.perf-lite .music-player-panel,
+body.perf-lite .music-playlist-panel {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.dg-root--mobile {
+  height: auto;
+  min-height: 0;
+  padding: 110px 0 18px;
+}
+
+.dg-root--mobile .dg-main,
+.dg-root--mobile .dg-overlay,
+.dg-root--mobile .dg-overlay--blur,
+.dg-root--mobile .dg-edge-fade,
+.dg-root--mobile .dg-empty-state,
+.dg-root--mobile .dg-drop-hint,
+.dg-root--mobile .dg-viewer {
+  display: none !important;
+}
+
+.dg-mobile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+
+.dg-mobile-item {
+  margin: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 14px 28px rgba(20, 0, 0, 0.18);
+  min-height: 180px;
+}
+
+.dg-mobile-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  object-fit: cover;
+}
+
+@media (max-width: 640px) {
+  .dg-root--mobile {
+    padding-top: 96px;
+  }
+
+  .dg-mobile-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-inline: 10px;
+  }
+
+  .dg-mobile-item {
+    border-radius: 18px;
+    min-height: 220px;
+  }
+
+  .dg-mobile-item img {
+    min-height: 220px;
   }
 }

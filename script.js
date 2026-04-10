@@ -66,6 +66,7 @@ const PAGE_LOADING_STATE = {
   modelReady: false,
   hidden: false,
 };
+const PERFORMANCE_MODE = detectPerformanceMode();
 const STORY_PROGRESS_STATE = {
   isUnlocked: false,
   requestNavigation: null,
@@ -84,14 +85,48 @@ document.addEventListener("DOMContentLoaded", function () {
   setupAdminAnswerTracking();
   setupStaggeredMenu();
   setupCurvedLoops();
-  setupFlowingMenu();
+  if (!PERFORMANCE_MODE.mobileTouch) {
+    setupFlowingMenu();
+  }
   setupSplitReveals();
   setupTimelineMotion();
-  setupDomeGallery();
   markPageLoaderModelReady();
+  runDeferred(setupDomeGallery, PERFORMANCE_MODE.mobileTouch ? 1200 : 600);
+  runDeferred(setupHeartCursor, 900);
   setupMusic();
-  setupHeartCursor();
 });
+
+function detectPerformanceMode() {
+  const params = new URLSearchParams(window.location.search);
+  const forced = (params.get("performance") || "").toLowerCase();
+  const mobileTouch =
+    window.matchMedia("(max-width: 900px)").matches &&
+    (window.matchMedia("(hover: none)").matches ||
+      window.matchMedia("(pointer: coarse)").matches);
+
+  if (forced === "full") {
+    return { mobileTouch: false, reason: "forced-full" };
+  }
+
+  if (forced === "lite") {
+    return { mobileTouch: true, reason: "forced-lite" };
+  }
+
+  return { mobileTouch, reason: mobileTouch ? "mobile-touch" : "full" };
+}
+
+function runDeferred(task, timeout = 400) {
+  if (typeof task !== "function") {
+    return;
+  }
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => task(), { timeout });
+    return;
+  }
+
+  window.setTimeout(task, Math.max(0, Math.min(timeout, 1200)));
+}
 
 function initPageLoader() {
   if (document.readyState === "complete") {
@@ -102,7 +137,7 @@ function initPageLoader() {
 
   window.setTimeout(() => {
     hidePageLoader();
-  }, 9000);
+  }, 3000);
 }
 
 function setupReloadHeroReset() {
@@ -178,6 +213,7 @@ function hidePageLoader() {
 
 function setupCurvedLoops() {
   const loops = document.querySelectorAll(".curved-loop-jacket");
+
   loops.forEach((loop, index) => {
     initCurvedLoop(loop, index);
   });
@@ -247,6 +283,7 @@ function initCurvedLoop(loop, index) {
     spacing: 0,
     direction,
     ready: false,
+    visible: true,
   };
 
   loop.dataset.curvedLoopInit = "true";
@@ -288,7 +325,7 @@ function initCurvedLoop(loop, index) {
   }
 
   function animateLoop() {
-    if (state.ready && !state.dragActive) {
+    if (state.ready && state.visible && !state.dragActive) {
       const delta = state.direction === "right" ? speed : -speed;
       state.currentOffset = wrapOffset(state.currentOffset + delta);
       applyOffset();
@@ -372,6 +409,20 @@ function initCurvedLoop(loop, index) {
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(updateLoopMetrics).catch(() => {});
   }
+
+  if (typeof IntersectionObserver !== "undefined") {
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          state.visible = entry.isIntersecting;
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    visibilityObserver.observe(loop);
+  }
+
   animateLoop();
 }
 
@@ -2013,6 +2064,17 @@ function setupDomeGallery() {
     return;
   }
 
+  if (PERFORMANCE_MODE.mobileTouch) {
+    initMobileDomeGallery({
+      root,
+      uploadInput,
+      uploadStatus,
+      uploadLoaderText,
+      folderPicker,
+    });
+    return;
+  }
+
   const gallery = initDomeGallery(root);
   domeUpdateUploadStatus(uploadStatus, gallery.getImageCount());
   let folderOpenTimer = 0;
@@ -2144,6 +2206,124 @@ function setupDomeGallery() {
     root.classList.remove("is-drag-over");
     await importFiles(event.dataTransfer.files);
   });
+}
+
+function initMobileDomeGallery({
+  root,
+  uploadInput,
+  uploadStatus,
+  uploadLoaderText,
+  folderPicker,
+}) {
+  root.classList.add("dg-root--mobile");
+  root.dataset.hasImages = "true";
+
+  const grid = document.createElement("div");
+  grid.className = "dg-mobile-grid";
+  root.appendChild(grid);
+
+  let currentImages = DOME_GALLERY_IMAGES.slice(0, 8);
+
+  const render = () => {
+    grid.replaceChildren();
+    currentImages.forEach((item, index) => {
+      const figure = document.createElement("figure");
+      figure.className = "dg-mobile-item";
+
+      const image = document.createElement("img");
+      image.src = item.src;
+      image.alt = item.alt || `Anh so ${index + 1}`;
+      image.loading = "lazy";
+      image.decoding = "async";
+      image.draggable = false;
+
+      figure.appendChild(image);
+      grid.appendChild(figure);
+    });
+
+    domeUpdateUploadStatus(uploadStatus, currentImages.length);
+  };
+
+  const animateFolderPicker = () => {
+    if (!folderPicker) {
+      return;
+    }
+
+    folderPicker.classList.add("is-open");
+    window.setTimeout(() => {
+      folderPicker.classList.remove("is-open");
+    }, 700);
+  };
+
+  const importFiles = async (files) => {
+    const imageFiles = Array.from(files || []).filter((file) =>
+      file.type.startsWith("image/")
+    );
+
+    if (!imageFiles.length) {
+      return;
+    }
+
+    if (uploadInput) {
+      uploadInput.disabled = true;
+    }
+
+    root.classList.add("is-uploading");
+    if (uploadStatus) {
+      uploadStatus.textContent = `Dang them ${imageFiles.length} anh...`;
+    }
+    if (uploadLoaderText) {
+      uploadLoaderText.textContent =
+        imageFiles.length === 1
+          ? "Dang xep 1 anh vao thu muc..."
+          : `Dang xep ${imageFiles.length} anh vao thu muc...`;
+    }
+
+    try {
+      const newImages = await domeFilesToImageItems(imageFiles, currentImages.length);
+      currentImages = [...currentImages, ...newImages].slice(0, 18);
+      render();
+    } catch (error) {
+      console.error("Khong the them anh vao mobile gallery.", error);
+      if (uploadStatus) {
+        uploadStatus.textContent = "Chua them duoc anh, thu lai nhe.";
+      }
+    } finally {
+      root.classList.remove("is-uploading");
+      if (uploadInput) {
+        uploadInput.disabled = false;
+        uploadInput.value = "";
+      }
+    }
+  };
+
+  if (folderPicker && uploadInput) {
+    folderPicker.addEventListener("click", () => {
+      if (!uploadInput.disabled) {
+        animateFolderPicker();
+      }
+    });
+
+    folderPicker.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+      if (!uploadInput.disabled) {
+        animateFolderPicker();
+        uploadInput.click();
+      }
+    });
+  }
+
+  if (uploadInput) {
+    uploadInput.addEventListener("change", async (event) => {
+      await importFiles(event.target.files);
+    });
+  }
+
+  render();
 }
 
 function initDomeGallery(root) {
@@ -2296,6 +2476,7 @@ function initDomeGallery(root) {
     inertiaFrame: 0,
     viewerOpen: false,
     autoRotateResumeAt: 0,
+    visible: true,
   };
   const currentImages = [];
 
@@ -2334,6 +2515,9 @@ function initDomeGallery(root) {
         const image = document.createElement("img");
         image.src = itemData.src;
         image.alt = itemData.alt || `Ảnh số ${index + 1}`;
+        image.loading = "lazy";
+        image.decoding = "async";
+        image.fetchPriority = "low";
         image.draggable = false;
         button.appendChild(image);
       } else {
@@ -2618,9 +2802,24 @@ function initDomeGallery(root) {
     window.addEventListener("resize", updateRadius, { passive: true });
   }
 
+  if (typeof IntersectionObserver !== "undefined") {
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          state.visible = entry.isIntersecting;
+        });
+      },
+      { threshold: 0.08 }
+    );
+
+    visibilityObserver.observe(root);
+  }
+
   function animateAutoRotate() {
     if (
       hasRenderableItems() &&
+      state.visible &&
+      !document.hidden &&
       !state.dragging &&
       !state.viewerOpen &&
       !state.inertiaFrame &&
@@ -2637,7 +2836,10 @@ function initDomeGallery(root) {
 
   updateRadius();
   applyTransform(state.rotation.x, state.rotation.y);
-  renderItems(DOME_GALLERY_IMAGES);
+  const initialImages = PERFORMANCE_MODE.mobileTouch
+    ? DOME_GALLERY_IMAGES.slice(0, 8)
+    : DOME_GALLERY_IMAGES;
+  renderItems(initialImages);
   animateAutoRotate();
 
   const api = {
@@ -2804,15 +3006,26 @@ function domeHasImageFiles(dataTransfer) {
 
 function setupHeartCursor() {
   const container = document.getElementById("heart-cursor-container");
+  const supportsHover =
+    window.matchMedia("(hover: hover)").matches &&
+    window.matchMedia("(pointer: fine)").matches;
+
+  if (!container || !supportsHover) {
+    return;
+  }
 
   let lastTime = 0;
 
   document.addEventListener("mousemove", (e) => {
+    if (document.hidden) {
+      return;
+    }
+
     const now = Date.now();
-    if (now - lastTime < 50) return; // Throttle
+    if (now - lastTime < 90) return;
     lastTime = now;
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 1; i++) {
       const heart = document.createElement("div");
       heart.className = "cursor-heart";
       heart.innerHTML = createRoseIconMarkup("cursor-heart-icon");
